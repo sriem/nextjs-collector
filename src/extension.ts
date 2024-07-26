@@ -19,13 +19,22 @@ export function activate(context: vscode.ExtensionContext) {
         const ignoreFilePath = path.join(rootPath, '.nextjscontextgeneratorignore');
         const ig = ignore();
 
+        // Default ignore patterns
+        const defaultIgnore = [
+            'node_modules', '.env', '.next', '.git', 'dist', 'build',
+            // Common binary file extensions
+            '*.jpg', '*.jpeg', '*.png', '*.gif', '*.ico', '*.svg',
+            '*.woff', '*.woff2', '*.ttf', '*.eot',
+            '*.mp4', '*.webm', '*.ogg', '*.mp3', '*.wav',
+            '*.pdf', '*.zip', '*.tar', '*.gz', '*.rar',
+            '*.exe', '*.dll', '*.so', '*.dylib'
+        ];
+
         if (fs.existsSync(ignoreFilePath)) {
             const ignoreFileContent = fs.readFileSync(ignoreFilePath, 'utf8');
             ig.add(ignoreFileContent);
-        } else {
-            // Default ignore patterns if .nextjscontextgeneratorignore doesn't exist
-            ig.add(['node_modules', '.env', '.next', '.git', 'dist', 'build']);
         }
+        ig.add(defaultIgnore);
 
         let generatedContext = '';
 

@@ -6,6 +6,7 @@ Next.js Codebase Context Collector is a Visual Studio Code extension specificall
 ## Features
 - Generates a single context file from all files in your Next.js project
 - Customizable ignore patterns to exclude unnecessary files or directories
+- Default exclusion of common binary file types
 - Easy to use with a simple command in VS Code
 - Optimized for Next.js project structure and file types
 
@@ -25,24 +26,33 @@ Next.js Codebase Context Collector is a Visual Studio Code extension specificall
 4. The extension will create a file named `nextjs-codebase-context.txt` in your project root
 
 ## Customizing Ignored Files
-By default, the extension ignores common directories and files typically not needed for context in Next.js projects, such as `node_modules`, `.env`, `.next`, `.git`, `dist`, and `build`. To customize this:
+By default, the extension ignores common directories, files, and binary file types typically not needed for context in Next.js projects. This includes:
+
+- Directories: `node_modules`, `.next`, `.git`, `dist`, `build`
+- Files: `.env`
+- Binary file types: images (jpg, png, gif, etc.), fonts, audio/video files, PDFs, archives, and executables
+
+To customize this:
 
 1. Create a file named `.nextjscontextgeneratorignore` in your project root
-2. Add patterns for files or directories you want to ignore, one per line
+2. Add patterns for additional files or directories you want to ignore, one per line
 
 Example `.nextjscontextgeneratorignore` file:
 ```
-node_modules
-.env
-.next
-.git
-dist
-build
-*.log
+# Additional directories to ignore
 temp/
+logs/
+
+# Specific files to ignore
 secrets.json
-public/assets/
+config.private.js
+
+# Additional file patterns
+*.log
+*.tmp
 ```
+
+Note: The default ignore patterns will always be applied in addition to any custom patterns you specify.
 
 ## Using the Generated Context
 After running the extension:
@@ -59,10 +69,10 @@ After running the extension:
 - Include representative examples of your pages, components, and API routes
 
 ## How It Works
-The extension scans your Next.js project directory and collects the content of all relevant files. It prioritizes Next.js-specific files (like pages, components, and configuration files) and includes them at the beginning of the generated context file. This ensures that the most important parts of your Next.js project are immediately available to the LLM.
+The extension scans your Next.js project directory and collects the content of all relevant files. It prioritizes Next.js-specific files (like pages, components, and configuration files) and includes them at the beginning of the generated context file. This ensures that the most important parts of your Next.js project are immediately available to the LLM. Binary files and specified ignored files are automatically excluded to keep the context focused and manageable.
 
 ## Performance Considerations
-For large projects, the context generation process might take a few moments. The extension will show a progress notification and inform you once the context file has been successfully generated.
+For large projects, the context generation process might take a few moments. The extension will show a progress notification and inform you once the context file has been successfully generated. The exclusion of binary files helps to keep the generation process faster and the resulting context file more manageable in size.
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request to our [GitHub repository](https://github.com/Riemann-AI/nextjs-codebase-context-collector).
@@ -77,7 +87,7 @@ Sergej Riemann
 If you encounter any problems or have any suggestions specific to Next.js projects, please open an issue on our [GitHub repository](https://github.com/Riemann-AI/nextjs-codebase-context-collector/issues).
 
 ## Privacy Notice
-This extension does not collect or transmit any data from your project. All processing is done locally on your machine.
+This extension does not collect or transmit any data from your project. All processing is done locally on your machine. The generated context file remains on your local system and is not sent anywhere.
 
 ## Feedback
 We value your feedback! If you find this extension useful, please consider leaving a review on the VS Code Marketplace. If you have ideas for improvements or new features, feel free to open an issue on our GitHub repository.
