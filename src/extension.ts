@@ -6,9 +6,9 @@ import ignore from 'ignore';
 let outputChannel: vscode.OutputChannel;
 
 export function activate(context: vscode.ExtensionContext) {
-    outputChannel = vscode.window.createOutputChannel('Codebase Context Collector');
+    outputChannel = vscode.window.createOutputChannel('Next.js Codebase Context Generator');
 
-    let disposable = vscode.commands.registerCommand('extension.collectCodebaseContext', () => {
+    let disposable = vscode.commands.registerCommand('extension.generateCodeBaseContext', () => {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
             vscode.window.showErrorMessage('No workspace folder open');
@@ -16,20 +16,20 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const rootPath = workspaceFolders[0].uri.fsPath;
-        const ignoreFilePath = path.join(rootPath, '.contextcollectorignore');
+        const ignoreFilePath = path.join(rootPath, '.nextjscontextgeneratorignore');
         const ig = ignore();
 
         if (fs.existsSync(ignoreFilePath)) {
             const ignoreFileContent = fs.readFileSync(ignoreFilePath, 'utf8');
             ig.add(ignoreFileContent);
         } else {
-            // Default ignore patterns if .contextcollectorignore doesn't exist
+            // Default ignore patterns if .nextjscontextgeneratorignore doesn't exist
             ig.add(['node_modules', '.env', '.next', '.git', 'dist', 'build']);
         }
 
-        let collectedInfo = '';
+        let generatedContext = '';
 
-        function collectFiles(dir: string) {
+        function generateContext(dir: string) {
             const files = fs.readdirSync(dir);
 
             for (const file of files) {
@@ -43,23 +43,35 @@ export function activate(context: vscode.ExtensionContext) {
                 const stat = fs.statSync(filePath);
 
                 if (stat.isDirectory()) {
-                    collectFiles(filePath);
+                    generateContext(filePath);
                 } else {
+                    // Prioritize Next.js specific files
+                    const isNextJSFile = file === 'next.config.js' ||
+                        file.endsWith('.page.js') ||
+                        file.endsWith('.page.tsx') ||
+                        relativePath.startsWith('pages/') ||
+                        relativePath.startsWith('components/') ||
+                        relativePath.startsWith('styles/');
+
                     const content = fs.readFileSync(filePath, 'utf8');
-                    collectedInfo += `\n\n// File: ${relativePath}\n${content}`;
+                    if (isNextJSFile) {
+                        generatedContext = `\n\n// File: ${relativePath}\n${content}` + generatedContext;
+                    } else {
+                        generatedContext += `\n\n// File: ${relativePath}\n${content}`;
+                    }
                 }
             }
         }
 
-        collectFiles(rootPath);
+        generateContext(rootPath);
 
-        const outputPath = path.join(rootPath, 'codebase-context.txt');
-        fs.writeFileSync(outputPath, collectedInfo);
+        const outputPath = path.join(rootPath, 'nextjs-codebase-context.txt');
+        fs.writeFileSync(outputPath, generatedContext);
 
-        outputChannel.appendLine(`Codebase context collected and saved to: ${outputPath}`);
+        outputChannel.appendLine(`Next.js codebase context generated and saved to: ${outputPath}`);
         outputChannel.show();
 
-        vscode.window.showInformationMessage('Codebase context collected successfully!');
+        vscode.window.showInformationMessage('Next.js codebase context generated successfully!');
     });
 
     context.subscriptions.push(disposable);
