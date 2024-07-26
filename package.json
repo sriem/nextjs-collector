@@ -23,10 +23,10 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "vscode:prepublish": "npm run build",
+    "build": "npm run clean && tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile",
+    "clean": "rimraf out",
     "test": "node ./out/test/runTest.js"
   },
   "keywords": [
@@ -56,6 +56,7 @@
     "eslint": "^7.27.0",
     "glob": "^7.1.7",
     "mocha": "^10.7.0",
+    "rimraf": "^3.0.2",
     "typescript": "^5.5.4",
     "vscode-test": "^1.5.2"
   },
