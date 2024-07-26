@@ -1,0 +1,54 @@
+# Dependencies
+/node_modules
+
+# Compiled output
+/out
+
+# Logs
+*.log
+npm-debug.log*
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+*.tmp
+*.temp
+
+# Test coverage
+/coverage
+
+# Production build
+/dist
+
+# Yarn
+yarn-error.log
+.yarn-integrity
+
+# npm
+.npm
+
+#VScode
+*.vsix
+
+# Optional: If you don't want to track package manager lock files
+# package-lock.json
+# yarn.lock
