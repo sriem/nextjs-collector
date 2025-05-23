@@ -1,95 +1,215 @@
-# Next.js Codebase Context Collector
+# Next.js Contextify
 
-## Overview
-Next.js Codebase Context Collector is a Visual Studio Code extension specifically designed for Next.js projects. It simplifies the process of generating a context file from your entire Next.js codebase. This tool is designed to provide comprehensive context for Large Language Models (LLMs) like ChatGPT or Claude.ai, enabling more accurate and context-aware responses when discussing your Next.js project.
+A powerful VS Code extension that generates comprehensive context files from your Next.js codebase for optimal use with Large Language Models (LLMs) like ChatGPT, Claude, and others.
 
-## Features
-- Generates a single context file from all relevant files in your Next.js project
-- Customizable ignore patterns to exclude unnecessary files or directories
-- Default exclusion of common binary file types and package manager lock files
-- Easy to use with a simple command in VS Code
-- Optimized for Next.js project structure and file types
+## 🚀 Features
 
-## Installation
-1. Install the extension from the VS Code Marketplace or download the `.vsix` file from the [releases page](https://github.com/Riemann-AI/nextjs-codebase-context-collector/releases).
-2. If using the `.vsix` file:
-   - Open Visual Studio Code
-   - Go to the Extensions view (Ctrl+Shift+X)
-   - Click on the "..." at the top of the Extensions view
-   - Choose "Install from VSIX..."
-   - Select the downloaded `.vsix` file
+### ✨ **Latest Next.js Support (v15+)**
+- **App Router** prioritization with intelligent file categorization
+- **Server Components** and **Client Components** detection
+- Support for all App Router conventions (`layout`, `page`, `loading`, `error`, `not-found`, `template`, `global-error`)
+- **Route Handlers** (`route.ts/js`) detection
+- **Middleware** support
 
-## Usage
+### 🎯 **Smart File Prioritization**
+Files are intelligently categorized and prioritized for optimal LLM processing:
+
+1. **A: Core Configurations** (Priority 80-100)
+   - Next.js config files (`next.config.js/ts/mjs`)
+   - Package configuration (`package.json`)
+   - TypeScript/JavaScript config
+   - Styling configuration (Tailwind, etc.)
+   - Middleware
+
+2. **B: App Router Structure** (Priority 60-80)
+   - Layouts, pages, loading states
+   - Error boundaries and templates
+   - API routes in app directory
+
+3. **C: Pages Router Structure** (Priority 68-78)
+   - `_app`, `_document`, `_error`
+   - API routes in pages directory
+   - Custom error pages (404, 500)
+
+4. **D: Components** (Priority 50-55)
+   - Client components (`'use client'`)
+   - Server components
+   - UI components
+
+5. **E: Hooks & Utilities** (Priority 45-48)
+   - Custom hooks
+   - Utility functions and libraries
+
+6. **F: Data Layer** (Priority 40-42)
+   - State management (Redux, Zustand, Context)
+   - Database schemas and migrations
+
+7. **G: Styling** (Priority 30-35)
+   - Global styles and component styles
+
+8. **H: Other Files** (Priority 10-25)
+   - TypeScript/JavaScript files
+   - Configuration files
+   - Documentation
+
+### 🛡️ **Enhanced Ignore Patterns**
+Comprehensive default ignore patterns for modern Next.js development:
+
+- **Build outputs**: `.next/`, `.swc/`, `out/`, `build/`, `dist/`, `.turbo/`
+- **Dependencies**: `node_modules/`
+- **Environment**: `.env*` files
+- **Lock files**: All package manager lock files (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `bun.lockb`)
+- **Media files**: Images, fonts, audio, video
+- **Development tools**: Coverage reports, logs, temporary files
+- **AI IDEs**: `.cursor/`, `.windsurf/` configurations
+
+### 📊 **Rich Context Output**
+- **Structured format** with file categories and priorities
+- **Progress indicators** during generation
+- **File statistics** and metadata
+- **Comprehensive headers** explaining the context structure
+
+## 🔧 Installation
+
+1. Install from VS Code Marketplace (coming soon)
+2. Or install manually:
+   ```bash
+   git clone https://github.com/sriem/nextjs-contextify
+   cd nextjs-contextify
+   npm install
+   npm run build
+   ```
+
+## 📖 Usage
+
+### Basic Usage
 1. Open your Next.js project in VS Code
-2. Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P on macOS)
-3. Type "Generate Code Base Context" and select the command
-4. The extension will create a file named `nextjs-codebase-context.txt` in your project root
+2. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+3. Run command: `Generate Code Base Context`
+4. Find the generated file: `nextjs-codebase-context.txt` in your project root
 
-## Customizing Ignored Files
-By default, the extension ignores common directories, files, and binary file types typically not needed for context in Next.js projects. This includes:
+### Custom Ignore Patterns
+Create a `.nextjscollectorignore` file in your project root to add custom ignore patterns:
 
-- Directories: `node_modules`, `.next`, `.git`, `dist`, `build`
-- Files: `.env`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
-- Binary file types: images (jpg, png, gif, etc.), fonts, audio/video files, PDFs, archives, and executables
-
-To customize this:
-
-1. Create a file named `.nextjscontextgeneratorignore` in your project root
-2. Add patterns for additional files or directories you want to ignore, one per line
-
-Example `.nextjscontextgeneratorignore` file:
 ```
-# Additional directories to ignore
-temp/
-logs/
-
-# Specific files to ignore
-secrets.json
-config.private.js
-
-# Additional file patterns
-*.log
-*.tmp
+# Custom ignore patterns
+*.test.ts
+*.spec.js
+/cypress/
+/playwright/
+custom-folder/
+specific-file.ts
 ```
 
-Note: The default ignore patterns will always be applied in addition to any custom patterns you specify. If you need to include a file that's ignored by default, you may need to modify the extension's source code.
+## 🎯 Perfect for LLM Interactions
 
-## Using the Generated Context
-After running the extension:
-1. Open the generated `nextjs-codebase-context.txt` file
-2. Copy its contents
-3. Paste it into your conversation with ChatGPT, Claude.ai, or any other LLM
-4. Provide context by explaining that this is your Next.js project's codebase
-5. Ask questions or request assistance related to your Next.js project
+This extension generates context files optimized for:
 
-## Best Practices for Next.js Projects
-- Include key Next.js configuration files like `next.config.js` in your context
-- Consider including important parts of your `package.json` for dependency context
-- If using a custom server, make sure to include the server file
-- Include representative examples of your pages, components, and API routes
+- **Code reviews and analysis**
+- **Architecture discussions**
+- **Bug fixing and debugging**
+- **Feature development planning**
+- **Migration assistance**
+- **Performance optimization**
 
-## How It Works
-The extension scans your Next.js project directory and collects the content of all relevant files. It prioritizes Next.js-specific files (like pages, components, and configuration files) and includes them at the beginning of the generated context file. This ensures that the most important parts of your Next.js project are immediately available to the LLM. Binary files, package manager lock files, and specified ignored files are automatically excluded to keep the context focused and manageable.
+The intelligent prioritization ensures that LLMs receive the most important architectural information first, leading to better understanding and more relevant responses.
 
-## Performance Considerations
-For large projects, the context generation process might take a few moments. The extension will show a progress notification and inform you once the context file has been successfully generated. The exclusion of binary files and large lock files helps to keep the generation process faster and the resulting context file more manageable in size.
+## 🔄 Recent Updates (v1.1.0)
 
-## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request to our [GitHub repository](https://github.com/Riemann-AI/nextjs-codebase-context-collector).
+### 🆕 New Features
+- **Full App Router support** with all Next.js 15+ conventions
+- **Client/Server component detection** using `'use client'` directive
+- **Smart file categorization** with 8 priority levels
+- **Progress indicators** with real-time status updates
+- **Enhanced error handling** with detailed error messages
+- **Better ignore patterns** covering modern build tools and AI IDEs
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### 🔧 Technical Improvements
+- **Updated dependencies** to latest versions
+- **Modern TypeScript configuration** (ES2022, ESNext modules)
+- **Enhanced ESLint rules** for better code quality
+- **Async/await architecture** for better performance
+- **Type-safe implementation** with comprehensive interfaces
 
-## Author
-Sergej Riemann
+### 🏗️ Architecture Enhancements
+- **Modular code structure** with separate concerns
+- **Memory-efficient processing** for large codebases
+- **Better file system handling** with proper error recovery
+- **Structured output format** with metadata headers
 
-## Support
-If you encounter any problems or have any suggestions specific to Next.js projects, please open an issue on our [GitHub repository](https://github.com/Riemann-AI/nextjs-codebase-context-collector/issues).
+## 🛠️ Development
 
-## Privacy Notice
-This extension does not collect or transmit any data from your project. All processing is done locally on your machine. The generated context file remains on your local system and is not sent anywhere.
+### Prerequisites
+- Node.js 18+
+- VS Code 1.100.0+
 
-## Feedback
-We value your feedback! If you find this extension useful, please consider leaving a review on the VS Code Marketplace. If you have ideas for improvements or new features, feel free to open an issue on our GitHub repository.
+### Setup
+```bash
+git clone https://github.com/sriem/nextjs-contextify
+cd nextjs-contextify
+npm install
+```
 
-Thank you for using Next.js Codebase Context Collector!
+### Build
+```bash
+npm run build
+```
+
+### Watch Mode
+```bash
+npm run watch
+```
+
+### Package
+```bash
+npm run vscode:prepublish
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Development Guidelines
+- Follow TypeScript best practices
+- Maintain comprehensive test coverage
+- Update documentation for new features
+- Ensure compatibility with latest Next.js versions
+
+## 📋 Requirements
+
+- VS Code 1.100.0 or higher
+- Next.js project (works with any version, optimized for 13+)
+
+## 🐛 Known Issues
+
+- Very large codebases (10,000+ files) may take longer to process
+- Binary files are automatically skipped to prevent corruption
+
+## 📈 Roadmap
+
+- [ ] Custom prioritization rules
+- [ ] Multiple output formats (JSON, XML)
+- [ ] Integration with popular AI coding assistants
+- [ ] Real-time context updates
+- [ ] Project template detection
+- [ ] Performance metrics and insights
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 👤 Author
+
+**Sergej Riemann**
+- GitHub: [@sriem](https://github.com/sriem)
+- Website: [www.sergej-riemann.dev](https://www.sergej-riemann.dev)
+
+## 🙏 Acknowledgments
+
+- Next.js team for the amazing framework
+- VS Code team for the excellent extension API
+- The developer community for feedback and contributions
+
+---
+
+**Star ⭐ this repo if you find it helpful!**

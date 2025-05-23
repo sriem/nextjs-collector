@@ -1,0 +1,129 @@
+# Example .nextjscollectorignore file
+# Copy this file to .nextjscollectorignore and customize as needed
+
+# Dependencies
+node_modules/
+node_modules/**
+
+# Environment files (all variations)
+.env*
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.test
+.env.example
+.env.template
+.env.sample
+
+# Modern AI-powered IDEs
+.cursor/
+.cursor*
+.windsurf/
+.windsurf*
+
+# Test files and directories
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+__tests__/
+tests/
+cypress/
+playwright/
+.jest/
+
+# Development and build artifacts
+.turbo/
+.swc/
+.webpack/
+.parcel-cache/
+coverage/
+.nyc_output/
+
+# Storybook
+.storybook/
+storybook-static/
+
+# Documentation that shouldn't be included
+docs/
+documentation/
+README*.md
+CHANGELOG.md
+CONTRIBUTING.md
+
+# Specific files you want to exclude
+secrets.json
+private-config.js
+local-settings.json
+
+# Additional file patterns
+*.log
+*.tmp
+*.backup
+*.old
+*~
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.vscode/**
+.vscode/settings.json
+.idea/
+.idea/**
+*.sublime-*
+
+# Package manager alternative files
+shrinkwrap.yaml
+npm-shrinkwrap.json
+
+# Custom directories specific to your project
+temp/
+tmp/
+uploads/
+downloads/
+cache/
+
+# Generated or auto-generated files
+*.generated.ts
+*.generated.js
+generated/
+auto-generated/
+
+# Large data files
+*.csv
+*.xlsx
+*.json.gz
+data/
+fixtures/
+
+# Internationalization files (if not needed for context)
+locales/
+i18n/
+lang/
+
+# Docker and deployment files
+Dockerfile*
+docker-compose*
+.dockerignore
+kubernetes/
+k8s/
+
+# CI/CD configurations
+.github/
+.gitlab-ci.yml
+.travis.yml
+circle.yml
+.circleci/
+
+# Monitoring and analytics
+sentry.properties
+.sentryclirc
+
+# Other frameworks/tools
+.expo/
+.umirc.ts
+.roadhogrc.js
+.webpackrc.js 
