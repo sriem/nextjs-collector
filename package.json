@@ -12,8 +12,7 @@
   ],
   "icon": "images/icon.jpg",
   "activationEvents": [
-    "onCommand:extension.generateCodeBaseContext",
-    "onCommand:extension.generateQuickContext"
+    "onView:nextjsContextifyExplorer"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -29,8 +28,120 @@
       {
         "command": "extension.generateWithPrompts",
         "title": "Next.js Contextify: Generate with LLM Prompts"
+      },
+      {
+        "command": "extension.openContextifyUI",
+        "title": "Next.js Contextify: Open UI",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "nextjsContextifyExplorer.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "nextjsContextifyExplorer.selectAll",
+        "title": "Select All",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "nextjsContextifyExplorer.deselectAll",
+        "title": "Deselect All",
+        "icon": "$(close-all)"
       }
-    ]
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "nextjsContextifyExplorer",
+          "name": "Next.js Contextify",
+          "when": "workspaceFolderCount > 0"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "nextjsContextify",
+          "title": "Next.js Contextify",
+          "icon": "$(file-code)"
+        }
+      ]
+    },
+    "views": {
+      "nextjsContextify": [
+        {
+          "id": "nextjsContextifyExplorer",
+          "name": "📁 File Selection",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "id": "nextjsContextifySteps",
+          "name": "🚀 Generation Steps",
+          "when": "workspaceFolderCount > 0"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "extension.openContextifyUI",
+          "when": "view == nextjsContextifyExplorer",
+          "group": "navigation@1"
+        },
+        {
+          "command": "nextjsContextifyExplorer.refresh",
+          "when": "view == nextjsContextifyExplorer",
+          "group": "navigation@2"
+        },
+        {
+          "command": "nextjsContextifyExplorer.selectAll",
+          "when": "view == nextjsContextifyExplorer",
+          "group": "navigation@3"
+        },
+        {
+          "command": "nextjsContextifyExplorer.deselectAll",
+          "when": "view == nextjsContextifyExplorer",
+          "group": "navigation@4"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Next.js Contextify",
+      "properties": {
+        "nextjsContextify.defaultFormat": {
+          "type": "string",
+          "enum": [
+            "xml",
+            "markdown",
+            "json"
+          ],
+          "default": "xml",
+          "description": "Default output format"
+        },
+        "nextjsContextify.defaultLLM": {
+          "type": "string",
+          "enum": [
+            "claude",
+            "gpt",
+            "gemini",
+            "custom"
+          ],
+          "default": "claude",
+          "description": "Default target LLM"
+        },
+        "nextjsContextify.includePrompts": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include ready-to-use prompts by default"
+        },
+        "nextjsContextify.autoOpenOutput": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open generated files"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run build",

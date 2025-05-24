@@ -2,7 +2,38 @@
 
 A powerful VS Code extension that generates comprehensive context files from your Next.js codebase for optimal use with Large Language Models (LLMs) like ChatGPT, Claude, and others.
 
+**🎯 Now with Professional Step-by-Step UI and 12 Expert Prompt Templates!**
+
 ## 🚀 Features
+
+### 🎨 **Modern Step-by-Step UI**
+- **Interactive Step Wizard** - guided 5-step process for perfect context generation
+- **Activity Bar Integration** - dedicated panel in VS Code sidebar
+- **File Selection Tree** - visual file picker with checkboxes
+- **Real-time Progress** - see your progress through each step
+- **Professional Templates** - 12 expert-crafted prompt templates
+
+### 🎯 **Professional Prompt Templates**
+Choose from 12 specialized templates for different use cases:
+
+#### **Development & Implementation**
+- 🐛 **Bug Fix Analysis** - Debug issues and identify problems
+- 🚀 **Feature Development** - Plan and implement new features  
+- 🔄 **Refactoring Help** - Large-scale code improvements
+
+#### **Analysis & Review**
+- 🔍 **Code Review** - Comprehensive code quality analysis
+- ⚡ **Performance Optimization** - Speed and efficiency improvements
+- 🏗️ **Architecture Analysis** - Deep architectural insights
+
+#### **Documentation & Communication**
+- 📚 **Documentation Generation** - Create comprehensive docs
+- 👋 **Developer Onboarding** - Help new team members
+
+#### **Specialized Analysis**
+- 🔒 **Security Audit** - Security vulnerability assessment
+- 🧪 **Testing Strategy** - Testing approach and coverage
+- 🔄 **Migration Planning** - Technology migration assistance
 
 ### ✨ **Latest Next.js Support (v15+)**
 - **App Router** prioritization with intelligent file categorization
@@ -52,6 +83,16 @@ Files are intelligently categorized and prioritized for optimal LLM processing:
    - Configuration files
    - Documentation
 
+### 🎨 **Multiple Output Formats**
+- **XML Format** - Structured tags for better LLM parsing
+- **Markdown Format** - Traditional markdown with code blocks  
+- **JSON Format** - Structured data for programmatic use
+
+### 🎯 **Custom User Input**
+- **Personal Instructions** - Add your own analysis requirements
+- **Custom Rules** - Define specific focus areas
+- **Combined Output** - Professional templates + your custom input
+
 ### 🛡️ **Enhanced Ignore Patterns**
 Comprehensive default ignore patterns for modern Next.js development:
 
@@ -64,10 +105,10 @@ Comprehensive default ignore patterns for modern Next.js development:
 - **AI IDEs**: `.cursor/`, `.windsurf/` configurations
 
 ### 📊 **Rich Context Output**
-- **Structured format** with file categories and priorities
-- **Progress indicators** during generation
+- **Token usage estimation** with LLM-specific limits
 - **File statistics** and metadata
-- **Comprehensive headers** explaining the context structure
+- **Progress indicators** during generation
+- **Structured output** with categories and priorities
 
 ## 🔧 Installation
 
@@ -82,14 +123,43 @@ Comprehensive default ignore patterns for modern Next.js development:
 
 ## 📖 Usage
 
-### Basic Usage
+### Step-by-Step UI (Recommended)
 1. Open your Next.js project in VS Code
-2. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-3. Run command: `Generate Code Base Context`
-4. Find the generated file: `nextjs-codebase-context.txt` in your project root
+2. Click the **Next.js Contextify** icon in the Activity Bar
+3. Follow the 5-step guided process:
+
+#### **Step 1: File Selection**
+- Use the **📁 File Selection** panel to choose specific files
+- Or leave empty for automatic smart selection
+- See real-time file count and selection status
+
+#### **Step 2: Configuration** 
+- Choose output format (XML/Markdown/JSON)
+- Select target LLM (Claude/GPT/Gemini/Custom)
+- Enable/disable ready-to-use prompts
+
+#### **Step 3: Professional Prompts**
+- Browse 12 expert-crafted templates
+- Select the one matching your use case
+- Or skip for custom-only analysis
+
+#### **Step 4: Custom Input**
+- Add your specific instructions
+- Define custom analysis rules
+- Combine with professional templates
+
+#### **Step 5: Generate**
+- Generate your optimized context file
+- Copy directly to clipboard
+- View token usage statistics
+
+### Quick Generation (Command Palette)
+- **Next.js Contextify: Quick Generate** - Fast XML generation with defaults
+- **Next.js Contextify: Generate Context** - Classic step-by-step wizard
+- **Next.js Contextify: Generate with LLM Prompts** - Quick prompt selection
 
 ### Custom Ignore Patterns
-Create a `.nextjscollectorignore` file in your project root to add custom ignore patterns:
+Create a `.nextjscollectorignore` file in your project root:
 
 ```
 # Custom ignore patterns
@@ -103,45 +173,54 @@ specific-file.ts
 
 ## 🎯 Perfect for LLM Interactions
 
-This extension generates context files optimized for:
+### Professional Use Cases
+- **🐛 Debugging** - Get expert help finding and fixing bugs
+- **🚀 Feature Development** - Plan new features with architectural guidance  
+- **📚 Documentation** - Generate comprehensive project documentation
+- **🔍 Code Reviews** - Thorough analysis with specific recommendations
+- **⚡ Performance** - Identify optimization opportunities
+- **🔒 Security** - Vulnerability assessment and fixes
+- **🧪 Testing** - Improve test coverage and strategy
+- **🔄 Migrations** - Plan technology upgrades and migrations
 
-- **Code reviews and analysis**
-- **Architecture discussions**
-- **Bug fixing and debugging**
-- **Feature development planning**
-- **Migration assistance**
-- **Performance optimization**
+### Output Examples
+Generated files include:
+- **Context**: Prioritized file contents with metadata
+- **Professional Prompts**: Expert-level analysis requests
+- **Token Estimates**: LLM-specific usage calculations
+- **Project Structure**: Visual directory tree
+- **Instructions**: Ready-to-paste LLM prompts
 
-The intelligent prioritization ensures that LLMs receive the most important architectural information first, leading to better understanding and more relevant responses.
+## 🔄 Recent Updates (v2.0.0)
 
-## 🔄 Recent Updates (v1.1.0)
-
-### 🆕 New Features
-- **Full App Router support** with all Next.js 15+ conventions
-- **Client/Server component detection** using `'use client'` directive
-- **Smart file categorization** with 8 priority levels
-- **Progress indicators** with real-time status updates
-- **Enhanced error handling** with detailed error messages
-- **Better ignore patterns** covering modern build tools and AI IDEs
+### 🆕 Major New Features
+- **🎨 Step-by-Step UI** - Complete redesign with guided workflow
+- **📁 File Selection Tree** - Visual file picker with checkboxes  
+- **🎯 Professional Prompts** - 12 expert-crafted templates
+- **✏️ Custom User Input** - Add personal instructions and rules
+- **📊 Token Usage UI** - Real-time token estimation and warnings
+- **🎨 Multiple Formats** - XML, Markdown, and JSON output
+- **🎪 Activity Bar Panel** - Dedicated workspace in VS Code
 
 ### 🔧 Technical Improvements
-- **Updated dependencies** to latest versions
-- **Modern TypeScript configuration** (ES2022, ESNext modules)
-- **Enhanced ESLint rules** for better code quality
-- **Async/await architecture** for better performance
-- **Type-safe implementation** with comprehensive interfaces
+- **Fixed**: Correct file extensions (.xml instead of .xml.txt)
+- **Enhanced**: Better error handling and user feedback
+- **Improved**: Memory-efficient processing for large codebases
+- **Added**: Configuration persistence and smart defaults
+- **Optimized**: Faster file scanning and processing
 
-### 🏗️ Architecture Enhancements
-- **Modular code structure** with separate concerns
-- **Memory-efficient processing** for large codebases
-- **Better file system handling** with proper error recovery
-- **Structured output format** with metadata headers
+### 🎯 User Experience
+- **Progressive Disclosure** - Only show relevant steps
+- **Smart Guidance** - Clear next actions and explanations
+- **Visual Feedback** - Progress indicators and status updates
+- **Professional Design** - Modern UI matching VS Code theme
+- **Accessibility** - Keyboard navigation and screen reader support
 
 ## 🛠️ Development
 
 ### Prerequisites
 - Node.js 18+
-- VS Code 1.100.0+
+- VS Code 1.85.0+
 
 ### Setup
 ```bash
@@ -165,6 +244,27 @@ npm run watch
 npm run vscode:prepublish
 ```
 
+## 🎯 Professional Prompt Templates Detail
+
+### Development & Implementation
+- **🐛 Bug Fix Analysis**: Systematic debugging approach with root cause analysis
+- **🚀 Feature Development**: Architectural planning for new features
+- **🔄 Refactoring Help**: Strategic code improvement and modernization
+
+### Analysis & Review  
+- **🔍 Code Review**: Comprehensive quality assessment with SOLID principles
+- **⚡ Performance Optimization**: Core Web Vitals and rendering optimization
+- **🏗️ Architecture Analysis**: Scalability and maintainability evaluation
+
+### Documentation & Communication
+- **📚 Documentation Generation**: Professional README, API docs, and guides
+- **👋 Developer Onboarding**: Team integration and knowledge transfer
+
+### Specialized Analysis
+- **🔒 Security Audit**: OWASP Top 10 compliance and vulnerability assessment
+- **🧪 Testing Strategy**: Test pyramid approach and quality gates
+- **🔄 Migration Planning**: Technology upgrade roadmaps and risk assessment
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -177,7 +277,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📋 Requirements
 
-- VS Code 1.100.0 or higher
+- VS Code 1.85.0 or higher
 - Next.js project (works with any version, optimized for 13+)
 
 ## 🐛 Known Issues
@@ -187,12 +287,14 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📈 Roadmap
 
-- [ ] Custom prioritization rules
-- [ ] Multiple output formats (JSON, XML)
-- [ ] Integration with popular AI coding assistants
+- [ ] VS Code Marketplace publishing
+- [ ] Custom prompt template creation
 - [ ] Real-time context updates
+- [ ] Integration with popular AI coding assistants
 - [ ] Project template detection
 - [ ] Performance metrics and insights
+- [ ] Team collaboration features
+- [ ] Custom file categorization rules
 
 ## 📄 License
 
@@ -209,7 +311,10 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - Next.js team for the amazing framework
 - VS Code team for the excellent extension API
 - The developer community for feedback and contributions
+- AI/LLM providers for inspiring better developer tools
 
 ---
 
-**Star ⭐ this repo if you find it helpful!**
+**⭐ Star this repo if you find it helpful!**
+
+*Transform your Next.js codebase into AI-ready context with professional prompts and intelligent analysis.*
