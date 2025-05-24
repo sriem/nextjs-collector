@@ -5,7 +5,7 @@ A powerful VS Code extension that generates comprehensive context files from you
 **🎯 Now with Professional Step-by-Step UI and 12 Expert Prompt Templates!**
 
 ![Next.js Contextify Overview](./media/Screenshot_1.png)
-*Modern VS Code integration with dedicated Activity Bar panel and intuitive file selection*
+*Initial file selection interface with step-by-step guidance and empty selection state*
 
 ## 🚀 Features
 
@@ -15,9 +15,6 @@ A powerful VS Code extension that generates comprehensive context files from you
 - **File Selection Tree** - visual file picker with checkboxes
 - **Real-time Progress** - see your progress through each step
 - **Professional Templates** - 12 expert-crafted prompt templates
-
-![Step-by-Step Workflow](./media/Screenshot_2.png)
-*Complete 5-step guided workflow with progress tracking and professional design*
 
 ### 🎯 **Professional Prompt Templates**
 Choose from 12 specialized templates for different use cases:
@@ -41,8 +38,8 @@ Choose from 12 specialized templates for different use cases:
 - 🧪 **Testing Strategy** - Testing approach and coverage
 - 🔄 **Migration Planning** - Technology migration assistance
 
-![Professional Prompt Templates](./media/Screenshot_5.png)
-*12 expert-crafted prompt templates organized by category for different analysis needs*
+![Professional Prompt Templates](./media/Screenshot_6.png)
+*12 expert-crafted prompt templates organized in a clean grid layout for easy selection*
 
 ### ✨ **Latest Next.js Support (v15+)**
 - **App Router** prioritization with intelligent file categorization
@@ -97,16 +94,10 @@ Files are intelligently categorized and prioritized for optimal LLM processing:
 - **Markdown Format** - Traditional markdown with code blocks  
 - **JSON Format** - Structured data for programmatic use
 
-![Configuration Options](./media/Screenshot_4.png)
-*Flexible configuration options for output format, target LLM, and prompt inclusion*
-
 ### 🎯 **Custom User Input**
 - **Personal Instructions** - Add your own analysis requirements
 - **Custom Rules** - Define specific focus areas
 - **Combined Output** - Professional templates + your custom input
-
-![Custom Input and Rules](./media/Screenshot_6.png)
-*Add personal instructions and custom rules to tailor the analysis to your specific needs*
 
 ### 🛡️ **Enhanced Ignore Patterns**
 Comprehensive default ignore patterns for modern Next.js development:
@@ -124,9 +115,6 @@ Comprehensive default ignore patterns for modern Next.js development:
 - **File statistics** and metadata
 - **Progress indicators** during generation
 - **Structured output** with categories and priorities
-
-![Context Generation](./media/Screenshot_7.png)
-*Final generation step with clear call-to-action and progress indication*
 
 ## 🔧 Installation
 
@@ -151,31 +139,43 @@ Comprehensive default ignore patterns for modern Next.js development:
 - Or leave empty for automatic smart selection
 - See real-time file count and selection status
 
-![File Selection Tree](./media/Screenshot_3.png)
-*Interactive file selection tree with checkboxes, directory support, and real-time selection count*
+![File Selection with Selected Items](./media/Screenshot_2.png)
+*File selection interface showing 453 selected items with detailed breakdown of directories and individual files*
+
+![Detailed File Selection View](./media/Screenshot_5.png)
+*Comprehensive view of selected files and directories with expandable lists and item counts*
 
 #### **Step 2: Configuration** 
 - Choose output format (XML/Markdown/JSON)
 - Select target LLM (Claude/GPT/Gemini/Custom)
 - Enable/disable ready-to-use prompts
 
+![Configuration Options](./media/Screenshot_3.png)
+*Configuration interface with output format selection and target LLM options*
+
+![Target LLM Selection](./media/Screenshot_4.png)
+*Dropdown menu showing all available target LLM options including Claude, ChatGPT, Gemini, and Custom*
+
 #### **Step 3: Professional Prompts**
 - Browse 12 expert-crafted templates
 - Select the one matching your use case
 - Or skip for custom-only analysis
+
+![Professional Prompts Selected](./media/Screenshot_7.png)
+*Professional prompts interface with selected Migration Planning template and continue option*
 
 #### **Step 4: Custom Input**
 - Add your specific instructions
 - Define custom analysis rules
 - Combine with professional templates
 
+![Custom Input Interface](./media/Screenshot_8.png)
+*Custom input step allowing personal instructions and custom rules for tailored analysis*
+
 #### **Step 5: Generate**
 - Generate your optimized context file
 - Copy directly to clipboard
 - View token usage statistics
-
-![Generated Output](./media/Screenshot_8.png)
-*Successfully generated context with file statistics, token count, and easy access options*
 
 ### Quick Generation (Command Palette)
 - **Next.js Contextify: Quick Generate** - Fast XML generation with defaults
