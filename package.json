@@ -2,7 +2,7 @@
   "name": "nextjs-contextify",
   "displayName": "Next.js Contextify",
   "description": "Generates optimized context files from Next.js codebases for LLM input",
-  "version": "1.1.0",
+  "version": "2.1.1",
   "publisher": "sriem",
   "engines": {
     "vscode": "^1.85.0"

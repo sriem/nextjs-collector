@@ -191,30 +191,18 @@ Generated files include:
 - **Project Structure**: Visual directory tree
 - **Instructions**: Ready-to-paste LLM prompts
 
-## 🔄 Recent Updates (v2.0.0)
+## 🔄 Recent Updates (v2.1.1)
 
-### 🆕 Major New Features
-- **🎨 Step-by-Step UI** - Complete redesign with guided workflow
-- **📁 File Selection Tree** - Visual file picker with checkboxes  
-- **🎯 Professional Prompts** - 12 expert-crafted templates
-- **✏️ Custom User Input** - Add personal instructions and rules
-- **📊 Token Usage UI** - Real-time token estimation and warnings
-- **🎨 Multiple Formats** - XML, Markdown, and JSON output
-- **🎪 Activity Bar Panel** - Dedicated workspace in VS Code
+### 🐛 **Critical Bug Fixes**
+- **🔧 Parent-Child Selection Fix** - Fixed child directories not being deselected when parent is deselected
+- **📁 Recursive Directory Handling** - Improved recursive selection/deselection of nested directories
+- **🔄 Tree View Synchronization** - Better checkbox state management for directory hierarchies
+- **📊 Enhanced Logging** - Better debugging for directory selection operations
 
-### 🔧 Technical Improvements
-- **Fixed**: Correct file extensions (.xml instead of .xml.txt)
-- **Enhanced**: Better error handling and user feedback
-- **Improved**: Memory-efficient processing for large codebases
-- **Added**: Configuration persistence and smart defaults
-- **Optimized**: Faster file scanning and processing
-
-### 🎯 User Experience
-- **Progressive Disclosure** - Only show relevant steps
-- **Smart Guidance** - Clear next actions and explanations
-- **Visual Feedback** - Progress indicators and status updates
-- **Professional Design** - Modern UI matching VS Code theme
-- **Accessibility** - Keyboard navigation and screen reader support
+### 🔄 Previous Updates (v2.1.0)
+- **🔧 Selection Sync Fix** - Fixed UI not updating when all files are deselected
+- **✅ Empty State Handling** - Proper "no files selected" display when selection is cleared
+- **🔄 Event Propagation** - Improved event handling between Tree View and UI
 
 ## 🛠️ Development
 

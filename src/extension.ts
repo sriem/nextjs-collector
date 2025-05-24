@@ -79,11 +79,15 @@ class FileTreeProvider implements vscode.TreeDataProvider<FileTreeItem> {
     }
 
     private notifySelectionChanged(): void {
-        this._onSelectionChanged.fire(Array.from(this.selectedFiles));
+        const selectedFiles = Array.from(this.selectedFiles);
+        console.log('Selection changed:', selectedFiles.length, 'items');
+        this._onSelectionChanged.fire(selectedFiles);
     }
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
+        // Force selection change notification on refresh
+        this.notifySelectionChanged();
     }
 
     selectAll(): void {
@@ -98,6 +102,7 @@ class FileTreeProvider implements vscode.TreeDataProvider<FileTreeItem> {
         this.saveSelection();
         this.notifySelectionChanged();
         this.refresh();
+        console.log('Deselected all files - selectedFiles size:', this.selectedFiles.size);
     }
 
     getTreeItem(element: FileTreeItem): vscode.TreeItem {
@@ -133,7 +138,20 @@ class FileTreeProvider implements vscode.TreeDataProvider<FileTreeItem> {
                     continue;
                 }
 
+                // Check if this item is selected
                 const isSelected = this.selectedFiles.has(relativePath);
+
+                // For directories, also check if any children are selected
+                let hasSelectedChildren = false;
+                if (entry.isDirectory()) {
+                    for (const selectedPath of this.selectedFiles) {
+                        if (selectedPath.startsWith(relativePath + '/')) {
+                            hasSelectedChildren = true;
+                            break;
+                        }
+                    }
+                }
+
                 const item: FileTreeItem = {
                     label: entry.name,
                     resourceUri: vscode.Uri.file(fullPath),
@@ -148,7 +166,9 @@ class FileTreeProvider implements vscode.TreeDataProvider<FileTreeItem> {
                         : vscode.ThemeIcon.File,
                     checkboxState: isSelected
                         ? vscode.TreeItemCheckboxState.Checked
-                        : vscode.TreeItemCheckboxState.Unchecked
+                        : hasSelectedChildren
+                            ? vscode.TreeItemCheckboxState.Checked
+                            : vscode.TreeItemCheckboxState.Unchecked
                 };
 
                 items.push(item);
@@ -225,18 +245,116 @@ class FileTreeProvider implements vscode.TreeDataProvider<FileTreeItem> {
     toggleSelection(item: FileTreeItem): void {
         if (item.resourceUri) {
             const relativePath = path.relative(this.rootPath, item.resourceUri.fsPath);
-            if (this.selectedFiles.has(relativePath)) {
-                this.selectedFiles.delete(relativePath);
+
+            if (item.isDirectory) {
+                // Handle directory selection
+                this.toggleDirectorySelection(relativePath, item.resourceUri.fsPath);
             } else {
-                this.selectedFiles.add(relativePath);
+                // Handle file selection
+                if (this.selectedFiles.has(relativePath)) {
+                    this.selectedFiles.delete(relativePath);
+                } else {
+                    this.selectedFiles.add(relativePath);
+                }
             }
+
             this.saveSelection();
             this.notifySelectionChanged();
             this.refresh();
         }
     }
 
+    private toggleDirectorySelection(relativePath: string, fullPath: string): void {
+        const isSelected = this.selectedFiles.has(relativePath);
+
+        if (isSelected) {
+            // Deselect directory and all its contents
+            this.deselectDirectoryAndContents(relativePath, fullPath);
+        } else {
+            // Select directory and all its contents
+            this.selectDirectoryAndContents(relativePath, fullPath);
+        }
+    }
+
+    private selectDirectoryAndContents(relativePath: string, fullPath: string): void {
+        // Add the directory itself
+        this.selectedFiles.add(relativePath);
+
+        // Recursively add all items (files and subdirectories) in the directory
+        const allItemsInDirectory = this.getAllItemsInDirectory(fullPath);
+        allItemsInDirectory.forEach(item => {
+            this.selectedFiles.add(item);
+        });
+
+        console.log(`Selected directory ${relativePath} and ${allItemsInDirectory.length} items`);
+    }
+
+    private deselectDirectoryAndContents(relativePath: string, fullPath: string): void {
+        // Remove the directory itself
+        this.selectedFiles.delete(relativePath);
+
+        // Get all items (files AND subdirectories) in this directory
+        const allItemsInDirectory = this.getAllItemsInDirectory(fullPath);
+        allItemsInDirectory.forEach(item => {
+            this.selectedFiles.delete(item);
+        });
+
+        console.log(`Deselected directory ${relativePath} and ${allItemsInDirectory.length} items`);
+    }
+
+    private getAllItemsInDirectory(dirPath: string): string[] {
+        const items: string[] = [];
+        this.scanDirectoryForAllItems(dirPath, items);
+        return items;
+    }
+
+    private scanDirectoryForAllItems(dirPath: string, items: string[]): void {
+        try {
+            const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+            const ig = this.createIgnoreFilter();
+
+            for (const entry of entries) {
+                const fullPath = path.join(dirPath, entry.name);
+                const relativePath = path.relative(this.rootPath, fullPath);
+
+                if (ig.ignores(relativePath)) {
+                    continue;
+                }
+
+                // Add both files AND directories to the items list
+                items.push(relativePath);
+
+                // If it's a directory, recursively scan it
+                if (entry.isDirectory()) {
+                    this.scanDirectoryForAllItems(fullPath, items);
+                }
+            }
+        } catch (error) {
+            console.error('Error scanning directory for all items:', error);
+        }
+    }
+
+    private getAllFilesInDirectory(dirPath: string): string[] {
+        const files: string[] = [];
+        this.scanDirectoryForFiles(dirPath, files);
+        return files;
+    }
+
     getSelectedFiles(): string[] {
+        // Return only actual files, not directories
+        const allSelected = Array.from(this.selectedFiles);
+        return allSelected.filter(filePath => {
+            const fullPath = path.join(this.rootPath, filePath);
+            try {
+                return fs.existsSync(fullPath) && fs.statSync(fullPath).isFile();
+            } catch {
+                return false;
+            }
+        });
+    }
+
+    getSelectedFilesAndDirectories(): string[] {
+        // Return all selected items (files and directories)
         return Array.from(this.selectedFiles);
     }
 }
@@ -591,8 +709,18 @@ export function activate(context: vscode.ExtensionContext): void {
     // Update steps and notify webview when file selection changes
     treeDataProvider.onSelectionChanged((selectedFiles) => {
         const selectedCount = selectedFiles.length;
-        stepsProvider.updateSelectedFiles(selectedCount);
-        if (selectedCount > 0) {
+        const actualFiles = treeDataProvider.getSelectedFiles();
+        const selectedDirectories = treeDataProvider.getSelectedFilesAndDirectories().filter(item => {
+            const fullPath = path.join(treeDataProvider['rootPath'], item);
+            try {
+                return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory();
+            } catch {
+                return false;
+            }
+        });
+
+        stepsProvider.updateSelectedFiles(actualFiles.length);
+        if (actualFiles.length > 0) {
             stepsProvider.setCurrentStep(2);
         } else {
             stepsProvider.setCurrentStep(1);
@@ -602,25 +730,64 @@ export function activate(context: vscode.ExtensionContext): void {
         if (currentWebviewPanel) {
             currentWebviewPanel.webview.postMessage({
                 command: 'selectedFilesChanged',
-                files: selectedFiles
+                files: actualFiles,
+                directories: selectedDirectories
             });
         }
     });
 
     // Update tree view selection when checkbox state changes
     treeView.onDidChangeCheckboxState((e) => {
+        console.log('Checkbox state changed for', e.items.length, 'items');
+        let hasChanges = false;
+
         e.items.forEach(([item, state]) => {
             if (item.resourceUri) {
                 const relativePath = path.relative(treeDataProvider['rootPath'], item.resourceUri.fsPath);
-                if (state === vscode.TreeItemCheckboxState.Checked) {
-                    treeDataProvider['selectedFiles'].add(relativePath);
-                } else {
-                    treeDataProvider['selectedFiles'].delete(relativePath);
+                const fullPath = item.resourceUri.fsPath;
+
+                try {
+                    const isDirectory = fs.statSync(fullPath).isDirectory();
+
+                    if (state === vscode.TreeItemCheckboxState.Checked) {
+                        if (isDirectory) {
+                            console.log(`Selecting directory: ${relativePath}`);
+                            // Select directory and all its contents
+                            treeDataProvider['selectDirectoryAndContents'](relativePath, fullPath);
+                        } else {
+                            console.log(`Selecting file: ${relativePath}`);
+                            // Select single file
+                            treeDataProvider['selectedFiles'].add(relativePath);
+                        }
+                        hasChanges = true;
+                    } else {
+                        if (isDirectory) {
+                            console.log(`Deselecting directory: ${relativePath}`);
+                            // Deselect directory and all its contents (including subdirectories)
+                            treeDataProvider['deselectDirectoryAndContents'](relativePath, fullPath);
+                        } else {
+                            console.log(`Deselecting file: ${relativePath}`);
+                            // Deselect single file
+                            treeDataProvider['selectedFiles'].delete(relativePath);
+                        }
+                        hasChanges = true;
+                    }
+                } catch (error) {
+                    console.warn('Error processing checkbox change for:', relativePath, error);
                 }
             }
         });
-        treeDataProvider['saveSelection']();
-        treeDataProvider['notifySelectionChanged']();
+
+        if (hasChanges) {
+            treeDataProvider['saveSelection']();
+            treeDataProvider['notifySelectionChanged']();
+            console.log('Selection updated - current size:', treeDataProvider['selectedFiles'].size);
+
+            // Force tree view refresh to update checkbox states
+            setTimeout(() => {
+                treeDataProvider.refresh();
+            }, 100);
+        }
     });
 
     // Original commands
@@ -655,14 +822,17 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     const refreshTreeView = vscode.commands.registerCommand('nextjsContextifyExplorer.refresh', () => {
+        console.log('Refreshing tree view...');
         treeDataProvider.refresh();
     });
 
     const selectAllFiles = vscode.commands.registerCommand('nextjsContextifyExplorer.selectAll', () => {
+        console.log('Selecting all files...');
         treeDataProvider.selectAll();
     });
 
     const deselectAllFiles = vscode.commands.registerCommand('nextjsContextifyExplorer.deselectAll', () => {
+        console.log('Deselecting all files...');
         treeDataProvider.deselectAll();
     });
 
@@ -714,9 +884,20 @@ async function showContextifyUI(context: vscode.ExtensionContext, treeDataProvid
 
     // Send initial selection to webview
     setTimeout(() => {
+        const selectedFiles = treeDataProvider.getSelectedFiles();
+        const selectedDirectories = treeDataProvider.getSelectedFilesAndDirectories().filter(item => {
+            const fullPath = path.join(workspaceFolders[0].uri.fsPath, item);
+            try {
+                return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory();
+            } catch {
+                return false;
+            }
+        });
+
         panel.webview.postMessage({
             command: 'selectedFilesChanged',
-            files: treeDataProvider.getSelectedFiles()
+            files: selectedFiles,
+            directories: selectedDirectories
         });
     }, 100);
 
@@ -730,7 +911,15 @@ async function showContextifyUI(context: vscode.ExtensionContext, treeDataProvid
                 case 'getSelectedFiles':
                     panel.webview.postMessage({
                         command: 'selectedFilesResponse',
-                        files: treeDataProvider.getSelectedFiles()
+                        files: treeDataProvider.getSelectedFiles(),
+                        directories: treeDataProvider.getSelectedFilesAndDirectories().filter(item => {
+                            const fullPath = path.join(workspaceFolders[0].uri.fsPath, item);
+                            try {
+                                return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory();
+                            } catch {
+                                return false;
+                            }
+                        })
                     });
                     break;
                 case 'getPromptLibrary':
@@ -742,7 +931,15 @@ async function showContextifyUI(context: vscode.ExtensionContext, treeDataProvid
                 case 'refreshFileSelection':
                     panel.webview.postMessage({
                         command: 'selectedFilesChanged',
-                        files: treeDataProvider.getSelectedFiles()
+                        files: treeDataProvider.getSelectedFiles(),
+                        directories: treeDataProvider.getSelectedFilesAndDirectories().filter(item => {
+                            const fullPath = path.join(workspaceFolders[0].uri.fsPath, item);
+                            try {
+                                return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory();
+                            } catch {
+                                return false;
+                            }
+                        })
                     });
                     break;
             }
@@ -2198,6 +2395,7 @@ Examples:
         let currentStep = 1;
         let selectedFilesCount = 0;
         let selectedFiles = [];
+        let selectedDirectories = [];
 
         // Load prompt library
         vscode.postMessage({ command: 'getPromptLibrary' });
@@ -2208,11 +2406,13 @@ Examples:
             switch (message.command) {
                 case 'selectedFilesResponse':
                     selectedFiles = message.files;
-                    displaySelectedFiles(message.files);
+                    selectedDirectories = message.directories || [];
+                    displaySelectedFiles(message.files, message.directories || []);
                     break;
                 case 'selectedFilesChanged':
                     selectedFiles = message.files;
-                    displaySelectedFiles(message.files);
+                    selectedDirectories = message.directories || [];
+                    displaySelectedFiles(message.files, message.directories || []);
                     break;
                 case 'promptLibraryResponse':
                     promptLibrary = message.prompts;
@@ -2295,28 +2495,59 @@ Examples:
             vscode.postMessage({ command: 'refreshFileSelection' });
         }
 
-        function displaySelectedFiles(files) {
-            selectedFiles = files;
-            selectedFilesCount = files.length;
+        function displaySelectedFiles(files, directories = []) {
+            console.log('Displaying selected files:', files.length, 'files,', directories.length, 'directories');
+            
+            selectedFiles = files || [];
+            selectedDirectories = directories || [];
+            selectedFilesCount = selectedFiles.length;
+            
             const display = document.getElementById('selectedFilesDisplay');
             const summary = document.getElementById('fileSummary');
             const status = document.getElementById('step1-status');
             const proceedBtn = document.getElementById('proceedBtn1');
             
-            if (files.length > 0) {
-                summary.style.display = 'block';
-                display.innerHTML = \`
-                    <h4>✅ Selected Files (\${files.length}):</h4>
-                    \${files.slice(0, 10).map(file => \`📄 \${file}\`).join('<br>')}
-                    \${files.length > 10 ? \`<br><strong>... and \${files.length - 10} more files</strong>\` : ''}
-                \`;
-                status.innerHTML = '<span>✅ Files selected</span>';
+            const totalItems = selectedFiles.length + selectedDirectories.length;
+            
+            // Always show the summary section
+            summary.style.display = 'block';
+            
+            if (totalItems > 0) {
+                let displayContent = '<h4>✅ Selected Items (' + selectedFiles.length + ' files';
+                if (selectedDirectories.length > 0) {
+                    displayContent += ' + ' + selectedDirectories.length + ' directories';
+                }
+                displayContent += '):</h4>';
+                
+                // Show directories first
+                if (selectedDirectories.length > 0) {
+                    displayContent += '<div style="margin-bottom: 10px;"><strong>📁 Directories (including all contents):</strong><br>';
+                    displayContent += selectedDirectories.slice(0, 5).map(dir => '📁 ' + dir + '/').join('<br>');
+                    if (selectedDirectories.length > 5) {
+                        displayContent += '<br><strong>... and ' + (selectedDirectories.length - 5) + ' more directories</strong>';
+                    }
+                    displayContent += '</div>';
+                }
+                
+                // Show individual files
+                if (selectedFiles.length > 0) {
+                    displayContent += '<div><strong>📄 Individual Files:</strong><br>';
+                    displayContent += selectedFiles.slice(0, 8).map(file => '📄 ' + file).join('<br>');
+                    if (selectedFiles.length > 8) {
+                        displayContent += '<br><strong>... and ' + (selectedFiles.length - 8) + ' more files</strong>';
+                    }
+                    displayContent += '</div>';
+                }
+                
+                display.innerHTML = displayContent;
+                status.innerHTML = '<span>✅ ' + totalItems + ' items selected</span>';
                 proceedBtn.style.display = 'inline-flex';
             } else {
-                summary.style.display = 'block';
+                // No items selected - reset to default state
                 display.innerHTML = '<h4>📂 No specific files selected</h4><p>Will include all relevant files automatically (recommended for most cases)</p>';
                 status.innerHTML = '<span>📂 All files (auto-selection)</span>';
                 proceedBtn.style.display = 'inline-flex';
+                console.log('Displaying empty selection state');
             }
         }
 
@@ -2338,7 +2569,7 @@ Examples:
         function displayRules() {
             const container = document.getElementById('rulesContainer');
             const list = document.getElementById('rulesList');
-            
+
             if (customRules.length > 0) {
                 container.style.display = 'block';
                 list.innerHTML = \`
