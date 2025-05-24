@@ -4,6 +4,9 @@ A powerful VS Code extension that generates comprehensive context files from you
 
 **🎯 Now with Professional Step-by-Step UI and 12 Expert Prompt Templates!**
 
+![Next.js Contextify Overview](./media/Screenshot_1.png)
+*Modern VS Code integration with dedicated Activity Bar panel and intuitive file selection*
+
 ## 🚀 Features
 
 ### 🎨 **Modern Step-by-Step UI**
@@ -12,6 +15,9 @@ A powerful VS Code extension that generates comprehensive context files from you
 - **File Selection Tree** - visual file picker with checkboxes
 - **Real-time Progress** - see your progress through each step
 - **Professional Templates** - 12 expert-crafted prompt templates
+
+![Step-by-Step Workflow](./media/Screenshot_2.png)
+*Complete 5-step guided workflow with progress tracking and professional design*
 
 ### 🎯 **Professional Prompt Templates**
 Choose from 12 specialized templates for different use cases:
@@ -34,6 +40,9 @@ Choose from 12 specialized templates for different use cases:
 - 🔒 **Security Audit** - Security vulnerability assessment
 - 🧪 **Testing Strategy** - Testing approach and coverage
 - 🔄 **Migration Planning** - Technology migration assistance
+
+![Professional Prompt Templates](./media/Screenshot_5.png)
+*12 expert-crafted prompt templates organized by category for different analysis needs*
 
 ### ✨ **Latest Next.js Support (v15+)**
 - **App Router** prioritization with intelligent file categorization
@@ -88,10 +97,16 @@ Files are intelligently categorized and prioritized for optimal LLM processing:
 - **Markdown Format** - Traditional markdown with code blocks  
 - **JSON Format** - Structured data for programmatic use
 
+![Configuration Options](./media/Screenshot_4.png)
+*Flexible configuration options for output format, target LLM, and prompt inclusion*
+
 ### 🎯 **Custom User Input**
 - **Personal Instructions** - Add your own analysis requirements
 - **Custom Rules** - Define specific focus areas
 - **Combined Output** - Professional templates + your custom input
+
+![Custom Input and Rules](./media/Screenshot_6.png)
+*Add personal instructions and custom rules to tailor the analysis to your specific needs*
 
 ### 🛡️ **Enhanced Ignore Patterns**
 Comprehensive default ignore patterns for modern Next.js development:
@@ -109,6 +124,9 @@ Comprehensive default ignore patterns for modern Next.js development:
 - **File statistics** and metadata
 - **Progress indicators** during generation
 - **Structured output** with categories and priorities
+
+![Context Generation](./media/Screenshot_7.png)
+*Final generation step with clear call-to-action and progress indication*
 
 ## 🔧 Installation
 
@@ -133,6 +151,9 @@ Comprehensive default ignore patterns for modern Next.js development:
 - Or leave empty for automatic smart selection
 - See real-time file count and selection status
 
+![File Selection Tree](./media/Screenshot_3.png)
+*Interactive file selection tree with checkboxes, directory support, and real-time selection count*
+
 #### **Step 2: Configuration** 
 - Choose output format (XML/Markdown/JSON)
 - Select target LLM (Claude/GPT/Gemini/Custom)
@@ -152,6 +173,9 @@ Comprehensive default ignore patterns for modern Next.js development:
 - Generate your optimized context file
 - Copy directly to clipboard
 - View token usage statistics
+
+![Generated Output](./media/Screenshot_8.png)
+*Successfully generated context with file statistics, token count, and easy access options*
 
 ### Quick Generation (Command Palette)
 - **Next.js Contextify: Quick Generate** - Fast XML generation with defaults
