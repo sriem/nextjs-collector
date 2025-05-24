@@ -118,14 +118,90 @@ Comprehensive default ignore patterns for modern Next.js development:
 
 ## 🔧 Installation
 
-1. Install from VS Code Marketplace (coming soon)
-2. Or install manually:
+### Option 1: Install from VSIX File
+1. Download the latest `.vsix` file from the releases
+2. Open VS Code
+3. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) to open Command Palette
+4. Type `Extensions: Install from VSIX...`
+5. Select the downloaded `.vsix` file
+6. Restart VS Code if prompted
+
+### Option 2: Manual Installation
+1. Clone and build from source:
    ```bash
    git clone https://github.com/sriem/nextjs-contextify
    cd nextjs-contextify
    npm install
    npm run build
    ```
+
+## 📦 Building and Packaging
+
+### Creating VSIX Files
+To create a distributable VSIX package:
+
+1. **Install VSCE (Visual Studio Code Extension Manager)**:
+   ```bash
+   npm install -g @vscode/vsce
+   ```
+
+2. **Build the Extension**:
+   ```bash
+   npm run build
+   ```
+
+3. **Create VSIX Package**:
+   ```bash
+   vsce package
+   ```
+   This creates a `nextjs-contextify-X.X.X.vsix` file in the root directory.
+
+4. **Package with Specific Version**:
+   ```bash
+   vsce package --pre-release
+   # or
+   vsce package 2.1.1
+   ```
+
+### Installing VSIX Files
+
+#### Method 1: VS Code GUI
+1. Open VS Code
+2. Go to Extensions view (`Ctrl+Shift+X`)
+3. Click the `...` menu in the Extensions view
+4. Select `Install from VSIX...`
+5. Choose your `.vsix` file
+
+#### Method 2: Command Line
+```bash
+code --install-extension nextjs-contextify-2.1.1.vsix
+```
+
+#### Method 3: Command Palette
+1. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
+2. Type `Extensions: Install from VSIX...`
+3. Select your `.vsix` file
+
+### Development Setup
+For development and testing:
+
+```bash
+# Clone the repository
+git clone https://github.com/sriem/nextjs-contextify
+cd nextjs-contextify
+
+# Install dependencies
+npm install
+
+# Build the extension
+npm run build
+
+# Package for distribution
+vsce package
+
+# Install locally for testing
+code --install-extension nextjs-contextify-*.vsix
+```
 
 ## 📖 Usage
 
@@ -296,17 +372,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - Very large codebases (10,000+ files) may take longer to process
 - Binary files are automatically skipped to prevent corruption
-
-## 📈 Roadmap
-
-- [ ] VS Code Marketplace publishing
-- [ ] Custom prompt template creation
-- [ ] Real-time context updates
-- [ ] Integration with popular AI coding assistants
-- [ ] Project template detection
-- [ ] Performance metrics and insights
-- [ ] Team collaboration features
-- [ ] Custom file categorization rules
 
 ## 📄 License
 
