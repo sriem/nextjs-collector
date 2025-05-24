@@ -8,141 +8,220 @@ interface FileInfo {
     content: string;
     priority: number;
     category: string;
+    tokens: number;
+    size: number;
+}
+
+interface ContextStats {
+    totalFiles: number;
+    totalTokens: number;
+    totalSize: number;
+    categories: Record<string, number>;
+}
+
+interface GenerationOptions {
+    format: 'xml' | 'markdown' | 'json';
+    includePrompts: boolean;
+    maxTokens?: number;
+    targetLLM: 'claude' | 'gpt' | 'gemini' | 'custom';
 }
 
 export function activate(context: vscode.ExtensionContext): void {
-    const disposable = vscode.commands.registerCommand('extension.generateCodeBaseContext', async () => {
+    // Main context generation command
+    const generateContext = vscode.commands.registerCommand('extension.generateCodeBaseContext', async () => {
+        await showContextWizard(context);
+    });
+
+    // Quick context generation
+    const generateQuickContext = vscode.commands.registerCommand('extension.generateQuickContext', async () => {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
             vscode.window.showErrorMessage('No workspace folder open');
             return;
         }
 
-        const rootPath = workspaceFolders[0].uri.fsPath;
+        const options: GenerationOptions = {
+            format: 'xml',
+            includePrompts: true,
+            targetLLM: 'claude'
+        };
 
-        try {
-            await vscode.window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: "Generating Next.js codebase context...",
-                cancellable: false
-            }, async (progress) => {
-                progress.report({ increment: 0, message: "Initializing..." });
-
-                const context = await generateCodebaseContext(rootPath, progress);
-                const outputPath = path.join(rootPath, 'nextjs-codebase-context.txt');
-
-                progress.report({ increment: 90, message: "Writing context file..." });
-                fs.writeFileSync(outputPath, context);
-
-                progress.report({ increment: 100, message: "Complete!" });
-                vscode.window.showInformationMessage(
-                    `Next.js codebase context generated successfully! (${context.length} characters)`
-                );
-            });
-        } catch (error) {
-            vscode.window.showErrorMessage(`Error generating context: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
+        await generateCodebaseContext(workspaceFolders[0].uri.fsPath, options);
     });
 
-    context.subscriptions.push(disposable);
+    // Generate with prompts
+    const generateWithPrompts = vscode.commands.registerCommand('extension.generateWithPrompts', async () => {
+        await showPromptWizard(context);
+    });
+
+    context.subscriptions.push(generateContext, generateQuickContext, generateWithPrompts);
+}
+
+async function showContextWizard(context: vscode.ExtensionContext): Promise<void> {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    // Step 1: Choose format
+    const format = await vscode.window.showQuickPick([
+        { label: 'XML Format', detail: 'Structured XML tags for better LLM parsing', value: 'xml' },
+        { label: 'Markdown Format', detail: 'Traditional markdown with code blocks', value: 'markdown' },
+        { label: 'JSON Format', detail: 'Structured JSON for programmatic use', value: 'json' }
+    ], {
+        placeHolder: 'Choose output format'
+    });
+
+    if (!format) return;
+
+    // Step 2: Choose LLM target
+    const llm = await vscode.window.showQuickPick([
+        { label: 'Claude (Anthropic)', detail: 'Optimized for Claude with 200k+ context', value: 'claude' },
+        { label: 'ChatGPT (OpenAI)', detail: 'Optimized for GPT-4 and GPT-4 Turbo', value: 'gpt' },
+        { label: 'Gemini (Google)', detail: 'Optimized for Google Gemini Pro', value: 'gemini' },
+        { label: 'Custom', detail: 'Generic format for any LLM', value: 'custom' }
+    ], {
+        placeHolder: 'Choose target LLM'
+    });
+
+    if (!llm) return;
+
+    // Step 3: Include prompts?
+    const includePrompts = await vscode.window.showQuickPick([
+        { label: 'Yes', detail: 'Include ready-to-use LLM prompts', value: true },
+        { label: 'No', detail: 'Just generate the context', value: false }
+    ], {
+        placeHolder: 'Include LLM prompts?'
+    });
+
+    if (includePrompts === undefined) return;
+
+    const options: GenerationOptions = {
+        format: format.value as 'xml' | 'markdown' | 'json',
+        targetLLM: llm.value as 'claude' | 'gpt' | 'gemini' | 'custom',
+        includePrompts: includePrompts.value
+    };
+
+    await generateCodebaseContext(workspaceFolders[0].uri.fsPath, options);
+}
+
+async function showPromptWizard(context: vscode.ExtensionContext): Promise<void> {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+    }
+
+    const promptType = await vscode.window.showQuickPick([
+        { label: '🐛 Bug Fix Analysis', detail: 'Generate context for debugging specific issues', value: 'bug-fix' },
+        { label: '🔄 Refactoring Help', detail: 'Context for large-scale code refactoring', value: 'refactor' },
+        { label: '📚 Documentation Generation', detail: 'Create comprehensive documentation', value: 'docs' },
+        { label: '🔍 Code Review', detail: 'Prepare for thorough code review', value: 'review' },
+        { label: '🚀 Feature Development', detail: 'Context for new feature implementation', value: 'feature' },
+        { label: '⚡ Performance Optimization', detail: 'Analyze for performance improvements', value: 'performance' },
+        { label: '🏗️ Architecture Analysis', detail: 'Deep dive into project architecture', value: 'architecture' }
+    ], {
+        placeHolder: 'What do you want to do with your codebase?'
+    });
+
+    if (!promptType) return;
+
+    const options: GenerationOptions = {
+        format: 'xml',
+        includePrompts: true,
+        targetLLM: 'claude'
+    };
+
+    await generateCodebaseContextWithPrompts(workspaceFolders[0].uri.fsPath, options, promptType.value);
 }
 
 async function generateCodebaseContext(
     rootPath: string,
-    progress: vscode.Progress<{ message?: string; increment?: number }>
-): Promise<string> {
+    options: GenerationOptions
+): Promise<void> {
+    try {
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Generating Next.js Contextify output...",
+            cancellable: false
+        }, async (progress) => {
+            progress.report({ increment: 0, message: "Initializing enhanced context generation..." });
+
+            const { files, stats } = await scanAndProcessFiles(rootPath, progress);
+
+            progress.report({ increment: 80, message: "Building optimized output..." });
+
+            const output = buildEnhancedOutput(files, stats, rootPath, options);
+            const outputPath = path.join(rootPath, `nextjs-contextify-${options.format}.${options.format === 'json' ? 'json' : 'txt'}`);
+
+            progress.report({ increment: 95, message: "Writing context file..." });
+            fs.writeFileSync(outputPath, output);
+
+            progress.report({ increment: 100, message: "Complete!" });
+
+            const action = await vscode.window.showInformationMessage(
+                `Next.js Contextify generated! (${stats.totalFiles} files, ~${stats.totalTokens.toLocaleString()} tokens)`,
+                'Open File', 'Copy to Clipboard', 'Show Stats'
+            );
+
+            if (action === 'Open File') {
+                const doc = await vscode.workspace.openTextDocument(outputPath);
+                await vscode.window.showTextDocument(doc);
+            } else if (action === 'Copy to Clipboard') {
+                await vscode.env.clipboard.writeText(output);
+                vscode.window.showInformationMessage('Context copied to clipboard!');
+            } else if (action === 'Show Stats') {
+                showContextStats(stats);
+            }
+        });
+    } catch (error) {
+        vscode.window.showErrorMessage(`Error generating context: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+}
+
+async function generateCodebaseContextWithPrompts(
+    rootPath: string,
+    options: GenerationOptions,
+    promptType: string
+): Promise<void> {
+    const { files, stats } = await scanAndProcessFiles(rootPath);
+    const output = buildEnhancedOutput(files, stats, rootPath, options);
+    const promptOutput = buildPromptOutput(output, promptType, stats);
+
+    const outputPath = path.join(rootPath, `nextjs-contextify-${promptType}.txt`);
+    fs.writeFileSync(outputPath, promptOutput);
+
+    const doc = await vscode.workspace.openTextDocument(outputPath);
+    await vscode.window.showTextDocument(doc);
+
+    vscode.window.showInformationMessage(
+        `Ready-to-use ${promptType} prompt generated! Just copy and paste to your LLM.`
+    );
+}
+
+async function scanAndProcessFiles(
+    rootPath: string,
+    progress?: vscode.Progress<{ message?: string; increment?: number }>
+): Promise<{ files: FileInfo[], stats: ContextStats }> {
     const ignoreFilePath = path.join(rootPath, '.nextjscollectorignore');
     const ig = ignore();
 
-    // Enhanced default ignore patterns for modern Next.js
+    // Enhanced ignore patterns
     const defaultIgnore = [
-        // Dependencies and build outputs
-        'node_modules/**',
-        '.next/**',
-        '.swc/**',
-        'out/**',
-        'build/**',
-        'dist/**',
-        '.turbo/**',
-
-        // Environment and config files that shouldn't be shared
-        '.env*',
-        '.env.local',
-        '.env.production',
-        '.env.development',
-
-        // Version control and IDE
-        '.git/**',
-        '.vscode/**',
-        '.idea/**',
-        '**/.DS_Store',
-
-        // Lock files
-        'package-lock.json',
-        'yarn.lock',
-        'pnpm-lock.yaml',
-        'bun.lockb',
-
-        // Media files
-        '**/*.jpg',
-        '**/*.jpeg',
-        '**/*.png',
-        '**/*.gif',
-        '**/*.ico',
-        '**/*.svg',
-        '**/*.webp',
-        '**/*.avif',
-
-        // Fonts
-        '**/*.woff',
-        '**/*.woff2',
-        '**/*.ttf',
-        '**/*.eot',
-        '**/*.otf',
-
-        // Audio/Video
-        '**/*.mp4',
-        '**/*.webm',
-        '**/*.ogg',
-        '**/*.mp3',
-        '**/*.wav',
-        '**/*.avi',
-        '**/*.mov',
-
-        // Archives and executables
-        '**/*.pdf',
-        '**/*.zip',
-        '**/*.tar',
-        '**/*.gz',
-        '**/*.rar',
-        '**/*.7z',
-        '**/*.exe',
-        '**/*.dll',
-        '**/*.so',
-        '**/*.dylib',
-
-        // Logs and temporary files
-        '**/*.log',
-        '**/*.tmp',
-        '**/tmp/**',
-        '**/temp/**',
-
-        // Test coverage
-        'coverage/**',
-        '.nyc_output/**',
-
-        // Generated files
-        '**/*.generated.*',
-        '**/generated/**',
-
-        // Other build tools
-        '.webpack/**',
-        '.parcel-cache/**'
+        'node_modules/**', '.next/**', '.swc/**', 'out/**', 'build/**', 'dist/**', '.turbo/**',
+        '.env*', '.git/**', '.vscode/**', '.idea/**', '.cursor/**', '.windsurf/**',
+        'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb',
+        '**/*.jpg', '**/*.jpeg', '**/*.png', '**/*.gif', '**/*.ico', '**/*.svg', '**/*.webp', '**/*.avif',
+        '**/*.woff', '**/*.woff2', '**/*.ttf', '**/*.eot', '**/*.otf',
+        '**/*.mp4', '**/*.webm', '**/*.ogg', '**/*.mp3', '**/*.wav', '**/*.avi', '**/*.mov',
+        '**/*.pdf', '**/*.zip', '**/*.tar', '**/*.gz', '**/*.rar', '**/*.7z',
+        '**/*.log', '**/*.tmp', '**/tmp/**', '**/temp/**',
+        'coverage/**', '.nyc_output/**', '**/*.generated.*', '**/generated/**'
     ];
 
     ig.add(defaultIgnore);
 
-    // Read custom ignore patterns
     if (fs.existsSync(ignoreFilePath)) {
         try {
             const ignoreFileContent = fs.readFileSync(ignoreFilePath, 'utf8');
@@ -152,14 +231,20 @@ async function generateCodebaseContext(
         }
     }
 
-    progress.report({ increment: 10, message: "Scanning files..." });
+    progress?.report({ increment: 10, message: "Scanning and analyzing files..." });
 
     const files: FileInfo[] = [];
     await scanDirectory(rootPath, rootPath, ig, files);
 
-    progress.report({ increment: 60, message: "Processing and prioritizing files..." });
+    progress?.report({ increment: 50, message: "Processing and optimizing content..." });
 
-    // Sort files by priority (higher first) and then by category
+    // Calculate tokens and optimize
+    files.forEach(file => {
+        file.tokens = estimateTokens(file.content);
+        file.size = Buffer.byteLength(file.content, 'utf8');
+    });
+
+    // Sort by priority
     files.sort((a, b) => {
         if (a.priority !== b.priority) {
             return b.priority - a.priority;
@@ -167,9 +252,17 @@ async function generateCodebaseContext(
         return a.category.localeCompare(b.category);
     });
 
-    progress.report({ increment: 80, message: "Generating context..." });
+    const stats: ContextStats = {
+        totalFiles: files.length,
+        totalTokens: files.reduce((sum, f) => sum + f.tokens, 0),
+        totalSize: files.reduce((sum, f) => sum + f.size, 0),
+        categories: files.reduce((acc, f) => {
+            acc[f.category] = (acc[f.category] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>)
+    };
 
-    return buildContextString(files, rootPath);
+    return { files, stats };
 }
 
 async function scanDirectory(
@@ -208,20 +301,20 @@ async function processFile(filePath: string, relativePath: string): Promise<File
             path: relativePath,
             content,
             priority,
-            category
+            category,
+            tokens: 0, // Will be calculated later
+            size: 0    // Will be calculated later
         };
     } catch (error) {
-        // Skip files that can't be read (binary files, permission issues, etc.)
         return null;
     }
 }
 
 function categorizeFile(relativePath: string, content: string): { priority: number; category: string } {
     const fileName = path.basename(relativePath);
-    const dirPath = path.dirname(relativePath);
     const extension = path.extname(fileName);
 
-    // Highest priority: Core Next.js configuration and root files
+    // Enhanced categorization logic (same as before but with better priorities)
     if (fileName === 'next.config.js' || fileName === 'next.config.mjs' || fileName === 'next.config.ts') {
         return { priority: 100, category: 'A1_NextJS_Config' };
     }
@@ -360,46 +453,488 @@ function categorizeFile(relativePath: string, content: string): { priority: numb
     return { priority: 10, category: 'H4_Other' };
 }
 
-function buildContextString(files: FileInfo[], rootPath: string): string {
-    const header = `
-# Next.js Codebase Context
+function buildEnhancedOutput(
+    files: FileInfo[],
+    stats: ContextStats,
+    rootPath: string,
+    options: GenerationOptions
+): string {
+    const timestamp = new Date().toISOString();
 
-Generated on: ${new Date().toISOString()}
-Root path: ${rootPath}
-Total files: ${files.length}
+    if (options.format === 'json') {
+        return JSON.stringify({
+            metadata: {
+                generated: timestamp,
+                rootPath,
+                stats,
+                format: 'json',
+                tool: 'Next.js Contextify'
+            },
+            files: files.map(f => ({
+                path: f.path,
+                category: f.category,
+                priority: f.priority,
+                tokens: f.tokens,
+                content: f.content
+            }))
+        }, null, 2);
+    }
 
-This context includes files organized by priority and category for optimal LLM processing.
-The files are ordered to provide the most important architectural and configuration 
-information first, followed by implementation details.
+    if (options.format === 'xml') {
+        return buildXMLOutput(files, stats, rootPath, timestamp, options);
+    }
 
-## File Categories:
-- A: Core configurations (Next.js, package.json, TypeScript, etc.)
-- B: App Router structure (layouts, pages, API routes)
-- C: Pages Router structure (for hybrid or legacy setups)
-- D: Components (client/server components, UI)
-- E: Hooks and utilities
-- F: Data layer (state management, database)
-- G: Styling
-- H: Other code and documentation
+    return buildMarkdownOutput(files, stats, rootPath, timestamp, options);
+}
 
----
+function buildXMLOutput(
+    files: FileInfo[],
+    stats: ContextStats,
+    rootPath: string,
+    timestamp: string,
+    options: GenerationOptions
+): string {
+    const header = `<?xml version="1.0" encoding="UTF-8"?>
+<codebase>
+  <metadata>
+    <generated>${timestamp}</generated>
+    <tool>Next.js Contextify</tool>
+    <format>xml</format>
+    <rootPath>${rootPath}</rootPath>
+    <stats>
+      <totalFiles>${stats.totalFiles}</totalFiles>
+      <totalTokens>${stats.totalTokens}</totalTokens>
+      <totalSize>${stats.totalSize}</totalSize>
+    </stats>
+  </metadata>
+
+  <projectTree>
+${generateProjectTree(files)}
+  </projectTree>
+
+  <files>
+`;
+
+    const fileContents = files.map(file => {
+        const escapedContent = escapeXML(file.content);
+        return `    <file path="${file.path}" category="${file.category}" priority="${file.priority}" tokens="${file.tokens}">
+${escapedContent}
+    </file>`;
+    }).join('\n\n');
+
+    const footer = `
+  </files>
+</codebase>`;
+
+    let output = header + fileContents + footer;
+
+    if (options.includePrompts) {
+        output += '\n\n' + generatePromptSuggestions(stats, options.targetLLM);
+    }
+
+    return output;
+}
+
+function buildMarkdownOutput(
+    files: FileInfo[],
+    stats: ContextStats,
+    rootPath: string,
+    timestamp: string,
+    options: GenerationOptions
+): string {
+    const header = `# Next.js Contextify Output
+
+**Generated:** ${timestamp}  
+**Root Path:** ${rootPath}  
+**Files:** ${stats.totalFiles}  
+**Estimated Tokens:** ~${stats.totalTokens.toLocaleString()}  
+**Total Size:** ${(stats.totalSize / 1024).toFixed(1)} KB
+
+## Project Structure
+
+\`\`\`
+${generateProjectTree(files)}
+\`\`\`
+
+## File Contents
 
 `;
 
     const fileContents = files.map(file => {
-        const separator = '='.repeat(80);
-        return `
-${separator}
-FILE: ${file.path}
-CATEGORY: ${file.category}
-PRIORITY: ${file.priority}
-${separator}
+        const extension = path.extname(file.path).slice(1) || 'text';
+        return `### ${file.path}
+**Category:** ${file.category} | **Priority:** ${file.priority} | **Tokens:** ~${file.tokens}
 
+\`\`\`${extension}
 ${file.content}
+\`\`\`
+
+---
 `;
     }).join('\n');
 
-    return header + fileContents;
+    let output = header + fileContents;
+
+    if (options.includePrompts) {
+        output += '\n\n' + generatePromptSuggestions(stats, options.targetLLM);
+    }
+
+    return output;
+}
+
+function generateProjectTree(files: FileInfo[]): string {
+    const tree = new Map<string, Set<string>>();
+
+    files.forEach(file => {
+        const parts = file.path.split('/');
+        let currentPath = '';
+
+        parts.forEach((part, index) => {
+            if (index > 0) {
+                currentPath += '/';
+            }
+            currentPath += part;
+
+            if (index === 0) {
+                if (!tree.has('')) {
+                    tree.set('', new Set());
+                }
+                tree.get('')?.add(part);
+            } else {
+                const parentPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+                if (!tree.has(parentPath)) {
+                    tree.set(parentPath, new Set());
+                }
+                tree.get(parentPath)?.add(part);
+            }
+        });
+    });
+
+    return Array.from(tree.entries())
+        .sort()
+        .map(([dir, items]) => {
+            const indent = '  '.repeat(dir.split('/').filter(p => p).length);
+            return Array.from(items).map(item => `${indent}${item}`).join('\n');
+        })
+        .join('\n');
+}
+
+function generatePromptSuggestions(stats: ContextStats, targetLLM: string): string {
+    const tokenInfo = getTokenLimits(targetLLM);
+
+    return `
+
+# 🤖 Ready-to-Use LLM Prompts
+
+## Quick Start Prompts
+
+### 🐛 Bug Analysis
+\`\`\`
+I have a Next.js application with ${stats.totalFiles} files. Please analyze the codebase above and help me:
+
+1. Identify potential bugs or issues
+2. Look for common Next.js anti-patterns
+3. Suggest improvements for better code quality
+4. Point out any security concerns
+
+Focus especially on the App Router structure and server/client component usage.
+\`\`\`
+
+### 🔄 Refactoring Suggestions
+\`\`\`
+Based on this Next.js codebase (${stats.totalFiles} files), please provide:
+
+1. Refactoring opportunities to improve code structure
+2. Ways to better utilize Next.js 15+ features
+3. Component optimization suggestions
+4. Performance improvement recommendations
+
+Please provide specific code examples for your suggestions.
+\`\`\`
+
+### 📚 Documentation Generation
+\`\`\`
+Please create comprehensive documentation for this Next.js project including:
+
+1. Project overview and architecture
+2. Component documentation with props and usage
+3. API routes documentation
+4. Setup and deployment instructions
+5. Code examples and best practices
+
+Format the output as clear, professional documentation.
+\`\`\`
+
+### 🚀 Feature Development
+\`\`\`
+I want to add a new feature to this Next.js application. Based on the current codebase structure:
+
+1. Show me where to place new components/pages
+2. Suggest the best architectural approach
+3. Identify reusable components I can leverage
+4. Recommend state management patterns
+
+Feature description: [DESCRIBE YOUR FEATURE HERE]
+\`\`\`
+
+## Token Usage
+- **Current context:** ~${stats.totalTokens.toLocaleString()} tokens
+- **${targetLLM} limit:** ${tokenInfo.limit}
+- **Efficiency:** ${((stats.totalTokens / tokenInfo.maxTokens) * 100).toFixed(1)}% of recommended max
+
+${stats.totalTokens > tokenInfo.maxTokens ? '⚠️ **Warning:** Context might be too large. Consider filtering specific directories.' : '✅ **Good:** Context size is optimal for LLM processing.'}
+`;
+}
+
+function buildPromptOutput(context: string, promptType: string, stats: ContextStats): string {
+    const prompts = {
+        'bug-fix': `# 🐛 Bug Fix Analysis Prompt
+
+${context}
+
+---
+
+## Your Task
+I need help debugging issues in this Next.js application. Please:
+
+1. **Scan for Bugs**: Look through the codebase and identify potential bugs, errors, or problematic patterns
+2. **Next.js Specific Issues**: Check for App Router anti-patterns, improper server/client component usage, or hydration issues
+3. **Code Quality**: Point out code smells, performance issues, or maintainability concerns
+4. **Specific Solutions**: For each issue found, provide specific code fixes with examples
+
+**Focus Areas:**
+- Server/Client component boundaries
+- Data fetching patterns
+- Route handlers and API endpoints
+- State management
+- Performance optimizations
+
+Please format your response with clear headings and code examples.`,
+
+        'refactor': `# 🔄 Refactoring Assistant Prompt
+
+${context}
+
+---
+
+## Refactoring Request
+Please help me refactor this Next.js codebase to improve:
+
+1. **Code Structure**: Better organization and modularity
+2. **Modern Patterns**: Utilize latest Next.js 15+ features
+3. **Performance**: Optimize for better loading and runtime performance
+4. **Maintainability**: Make code easier to understand and modify
+
+**Specific Areas:**
+- Component composition and reusability
+- Custom hooks and utility functions
+- File organization and naming
+- TypeScript usage and type safety
+- Styling and CSS organization
+
+For each suggestion, provide before/after code examples showing the improvement.`,
+
+        'docs': `# 📚 Documentation Generation Prompt
+
+${context}
+
+---
+
+## Documentation Request
+Create comprehensive, professional documentation for this Next.js project including:
+
+1. **Project Overview**
+   - Purpose and key features
+   - Technology stack and architecture
+   - Project structure explanation
+
+2. **Setup Guide**
+   - Installation instructions
+   - Environment setup
+   - Development workflow
+
+3. **Component Documentation**
+   - All reusable components with props
+   - Usage examples
+   - Integration patterns
+
+4. **API Documentation**
+   - All API routes and endpoints
+   - Request/response examples
+   - Authentication/authorization
+
+5. **Deployment Guide**
+   - Build process
+   - Deployment options
+   - Production considerations
+
+Format as clear, structured markdown suitable for a README or wiki.`,
+
+        'review': `# 🔍 Code Review Prompt
+
+${context}
+
+---
+
+## Code Review Request
+Please conduct a thorough code review of this Next.js application covering:
+
+1. **Architecture Review**
+   - Overall project structure
+   - Design patterns usage
+   - Separation of concerns
+
+2. **Code Quality**
+   - TypeScript usage and type safety
+   - Error handling
+   - Code consistency and style
+
+3. **Next.js Best Practices**
+   - App Router implementation
+   - Server/Client component usage
+   - Data fetching strategies
+   - Route handling
+
+4. **Performance & Security**
+   - Bundle optimization
+   - Loading strategies
+   - Security vulnerabilities
+   - SEO considerations
+
+Rate each area (1-10) and provide specific recommendations for improvements.`,
+
+        'feature': `# 🚀 Feature Development Prompt
+
+${context}
+
+---
+
+## Feature Development Request
+I want to add a new feature to this Next.js application. Based on the current codebase:
+
+1. **Architecture Analysis**
+   - Where should new components/pages go?
+   - What's the best approach given current structure?
+   - Which existing components can I reuse?
+
+2. **Implementation Plan**
+   - Detailed step-by-step development plan
+   - Required files and their locations
+   - Integration points with existing code
+
+3. **Code Templates**
+   - Provide starter code following project patterns
+   - Include proper TypeScript types
+   - Follow established naming conventions
+
+**Feature Description:** [Please describe your feature here]
+
+Please provide a complete implementation roadmap with code examples.`,
+
+        'performance': `# ⚡ Performance Optimization Prompt
+
+${context}
+
+---
+
+## Performance Analysis Request
+Analyze this Next.js application for performance optimization opportunities:
+
+1. **Bundle Analysis**
+   - Large dependencies or unused code
+   - Code splitting opportunities
+   - Dynamic import suggestions
+
+2. **Rendering Optimization**
+   - Server vs Client component decisions
+   - Streaming and Suspense usage
+   - Loading states and UX
+
+3. **Data Fetching**
+   - Caching strategies
+   - Parallel data loading
+   - Waterfall elimination
+
+4. **Core Web Vitals**
+   - LCP (Largest Contentful Paint) improvements
+   - CLS (Cumulative Layout Shift) fixes
+   - FID/INP optimization
+
+Provide specific, actionable recommendations with code examples for each optimization.`,
+
+        'architecture': `# 🏗️ Architecture Deep Dive Prompt
+
+${context}
+
+---
+
+## Architecture Analysis Request
+Provide a comprehensive analysis of this Next.js application's architecture:
+
+1. **Current Architecture Assessment**
+   - Architectural patterns used
+   - Layer separation and boundaries
+   - Data flow and state management
+
+2. **Strengths & Weaknesses**
+   - What's working well?
+   - What needs improvement?
+   - Potential scalability issues
+
+3. **Modern Next.js Alignment**
+   - App Router utilization
+   - Server/Client component strategy
+   - Edge runtime usage
+
+4. **Improvement Roadmap**
+   - Short-term fixes
+   - Long-term architectural goals
+   - Migration strategies
+
+Include architectural diagrams (text-based) and specific implementation recommendations.`
+    };
+
+    return prompts[promptType as keyof typeof prompts] || prompts['review'];
+}
+
+function estimateTokens(content: string): number {
+    // Rough estimation: ~4 characters per token
+    return Math.ceil(content.length / 4);
+}
+
+function getTokenLimits(llm: string): { limit: string, maxTokens: number } {
+    const limits = {
+        'claude': { limit: '200k tokens', maxTokens: 150000 },
+        'gpt': { limit: '128k tokens', maxTokens: 100000 },
+        'gemini': { limit: '1M tokens', maxTokens: 800000 },
+        'custom': { limit: 'varies', maxTokens: 100000 }
+    };
+    return limits[llm as keyof typeof limits] || limits.custom;
+}
+
+function escapeXML(content: string): string {
+    return content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
+function showContextStats(stats: ContextStats): void {
+    const categoryStats = Object.entries(stats.categories)
+        .sort(([, a], [, b]) => b - a)
+        .map(([cat, count]) => `${cat}: ${count} files`)
+        .join('\n');
+
+    vscode.window.showInformationMessage(
+        `Context Statistics:\n\n` +
+        `📁 Total Files: ${stats.totalFiles}\n` +
+        `🎯 Estimated Tokens: ${stats.totalTokens.toLocaleString()}\n` +
+        `💾 Total Size: ${(stats.totalSize / 1024).toFixed(1)} KB\n\n` +
+        `Categories:\n${categoryStats}`,
+        { modal: true }
+    );
 }
 
 export function deactivate(): void {
